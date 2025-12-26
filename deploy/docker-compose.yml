@@ -1,0 +1,132 @@
+version: '3'
+services:
+  mcq_redis:
+    container_name: mcq_redis
+    image: redis
+    command: redis-server /etc/redis/redis.conf
+    volumes:
+      - /workspace/mcq/redis_data:/data
+      - /workspace/mcq/deploy/redis/redis.conf:/etc/redis/redis.conf
+    restart: unless-stopped
+    network_mode: "host"
+  mcq_web_server:
+    image: mcq:latest
+    container_name: mcq_web_server
+    volumes:
+      - /workspace/mcq:/workspace/mcq
+    build:
+      context: /workspace/mcq
+      dockerfile: deploy/Dockerfile
+#    depends_on:
+#      - mcq_redis
+    command: >
+      /bin/sh -c "
+        MANAGE_FILE=$$(if [ -f manage.py ]; then echo 'manage.py'; else echo 'manage.pyc'; fi);
+        python $$MANAGE_FILE migrate;
+        python $$MANAGE_FILE collectstatic --noinput;
+        uwsgi --ini /workspace/mcq/deploy/uwsgi/mcq_uwsgi.ini
+      "
+    restart: unless-stopped
+    network_mode: "host"
+  mcq_celery:
+    image: mcq:latest
+    container_name: mcq_celery
+    build:
+      context: /workspace/mcq
+      dockerfile: deploy/Dockerfile
+    volumes:
+      - /workspace/mcq:/workspace/mcq
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cd /workspace/mcq/backend
+        celery -A apps.celery_tasks.main worker -l warning -f ./log/celery.log
+#    depends_on:
+#      - mcq_redis
+    restart: unless-stopped
+    network_mode: "host"
+  mcq_celery_beat:
+    image: mcq:latest
+    container_name: mcq_celery_beat
+    build:
+      context: /workspace/mcq
+      dockerfile: deploy/Dockerfile
+    volumes:
+      - /workspace/mcq:/workspace/mcq
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cd /workspace/mcq/backend/apps
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 启动 celery beat..."
+        exec celery -A celery_tasks.main beat -l warning --scheduler django_celery_beat.schedulers:DatabaseScheduler 2>&1 | sed -E 's/^(\^+)$//g; s/^/[CELERY-BEAT] /'
+    network_mode: "host"
+    depends_on:
+      - mcq_web_server
+      - mcq_redis
+    restart: unless-stopped
+  mcq_isw_adapter:
+    image: mcq:latest
+    container_name: mcq_isw_adapter
+    build:
+      context: /workspace/mcq
+      dockerfile: deploy/Dockerfile
+    volumes:
+      - /workspace/mcq:/workspace/mcq
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cd /workspace/mcq/backend/isw_adapter
+        if [ -f main.py ]; then python main.py; else python main.pyc; fi
+    restart: unless-stopped
+    network_mode: "host"
+  mcq_device_monitor:
+    image: mcq:latest
+    container_name: mcq_device_monitor
+    build:
+      context: /workspace/mcq
+      dockerfile: deploy/Dockerfile
+    volumes:
+      - /workspace/mcq:/workspace/mcq
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cd /workspace/mcq/backend/device_monitor
+        if [ -f main.py ]; then python main.py; else python main.pyc; fi
+    restart: unless-stopped
+    network_mode: "host"
+  mcq_wechat_pay_server:
+    image: mcq:latest
+    container_name: mcq_wechat_pay_server
+    build:
+      context: /workspace/mcq
+      dockerfile: deploy/Dockerfile
+    volumes:
+      - /workspace/mcq:/workspace/mcq
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cd /workspace/mcq/backend/wechat_pay_server
+        if [ -f main.py ]; then python main.py; else python main.pyc; fi
+    restart: unless-stopped
+    network_mode: "host"
+  mcq_notifier:
+    image: mcq:latest
+    container_name: mcq_notifier
+    build:
+      context: /workspace/mcq
+      dockerfile: deploy/Dockerfile
+    volumes:
+      - /workspace/mcq:/workspace/mcq
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cd /workspace/mcq/backend/notifier
+        if [ -f main.py ]; then python main.py; else python main.pyc; fi
+    restart: always
+    network_mode: "host"

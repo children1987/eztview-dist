@@ -1,0 +1,9 @@
+# 全局默认 LF 换行，自动转换行尾
+* text=auto eol=lf
+
+# 批处理文件强制 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 特殊文件单独配置（如有需要补充）
+# *.ini text eol=crlf

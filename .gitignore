@@ -1,0 +1,11 @@
+*.pyc
+/backend/.env
+/backend/log/
+.idea/
+/node_modules/
+__pycache__/
+*.env
+/backend/unpackage/
+env/
+.hbuilderx
+*.pem

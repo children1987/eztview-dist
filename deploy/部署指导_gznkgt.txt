@@ -1,0 +1,58 @@
+本文档用于：部署本系统到 gznkgt（腾讯云服务器 all in one）
+
+## 基础环境准备
+本设备已完成iam、isw的部署
+
+## 在关系型数据库中创建数据库
+数据库名：mcq
+所有者：postgres
+编码：UTF8
+表空间：pg_default
+
+
+## clone
+```
+cd /workspace
+git clone https://codeup.aliyun.com/shihow/xian/mcq.git
+cd mcq
+```
+
+## 在isw中，添加SU_mcq用户
+todo: 应自动化
+
+## 编辑.env
+当不使用钉钉时，应该不关注钉钉相关的env； 短信同理
+```
+cd backend
+cp ./.env.example ./.env
+vi .env
+cd ..
+```
+
+## 创建钉钉、短信等资源的env文件
+```
+cp /workspace/mcq/backend/m_common/sms/tencent/.env.example /workspace/mcq/backend/m_common/sms/tencent/.env
+```
+若实际有相应资源，则填入相关环境变量
+
+## 构建docker容器
+```
+cd deploy
+chmod +x ./init_deploy_gznkgt.sh
+./init_deploy_gznkgt.sh
+cd ..
+```
+
+## 创建系统内置用户
+```
+docker exec -it mcq_web_server python manage.py createsuperuser
+admin
+`密码请查阅: 《isw-docs\70.运维\私有部署\*\部署笔记-<项目代号>.md》中的 iam admin 密码`
+```
+
+## 重启
+```
+cd deploy
+chmod +x ./restart.sh
+./restart.sh
+```

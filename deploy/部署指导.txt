@@ -1,0 +1,48 @@
+1. 确保 Nginx 已ok：
+（1）首次启动Nginx：
+`
+mkdir tmp_for_start_docker_nginx && \
+    yum install -y git && \
+    git clone https://gitee.com/shihow/start_docker_nginx.git tmp_for_start_docker_nginx/t && \
+    python ./tmp_for_start_docker_nginx/t/start_nginx.py
+`
+（2）非首次启动Nginx：
+`
+docker start nginx
+`
+
+2. 复制ssl证书(nginx版)到:
+    /workspace/ssl/mcq-api.eztcloud.com/
+
+3. clone代码
+`
+cd /workspace
+git clone git@codeup.aliyun.com:shihow/xian/mcq.git
+cd mcq
+`
+
+4. 准备env文件
+`
+cp ./backend/.env.example ./backend/.env
+vi ./backend/.env
+`
+
+4. 初始化docker容器
+`
+cd deploy
+chmod +x ./init_deploy.sh
+./init_deploy.sh
+`
+
+4. 若涉及，check 钉钉智能助手、钉钉自建应用的IP白名单
+
+5. check 腾讯云端口
+
+6. 若清空redis， 重新部署后需执行命令 -- python manage.py update_scene_cache --settings=config.settings.production
+
+7. 腾讯云COS配置
+    mcq-1256873971 -> 安全管理 -> 防盗链设置 -> Referer (CDN的referer也一样)
+servicewechat.com
+*.eztcloud.com
+*.hotanzn.com
+*.leadot.com.cn

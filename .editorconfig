@@ -1,0 +1,32 @@
+# .editorconfig
+# 官方文档: https://editorconfig.org/
+
+# 标记这是配置的根，停止向上查找
+root = true
+
+# 所有文件的通用设置
+[*]
+end_of_line = lf                # 默认使用 LF（\n）
+insert_final_newline = true     # 文件末尾保留一个空行
+# trim_trailing_whitespace = true # 自动删除行尾多余空格
+charset = utf-8                 # 统一使用 UTF-8 编码
+
+# Windows 批处理脚本：必须用 CRLF
+[*.bat]
+end_of_line = crlf
+insert_final_newline = false    # .bat 通常不建议末尾加空行（某些旧系统可能报错）
+
+[*.cmd]
+end_of_line = crlf
+insert_final_newline = false
+
+# 可选：YAML 对缩进敏感，禁止制表符
+[*.yml]
+[*.yaml]
+indent_style = space
+indent_size = 2
+
+# 可选：JSON 通常用 2 空格
+[*.json]
+indent_style = space
+indent_size = 2

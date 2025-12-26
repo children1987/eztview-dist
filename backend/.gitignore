@@ -1,0 +1,9 @@
+/node_modules
+__pycache__/
+*.pyc
+.idea/
+media/
+.env
+*.log
+*.log.*
+local_debug_scripts/

@@ -1,0 +1,10 @@
+{
+    "python.analysis.extraPaths": [
+        ".",
+        "./apps"
+    ],
+    "cursorpyright.analysis.extraPaths": [
+        ".",
+        "./apps"
+    ]
+}

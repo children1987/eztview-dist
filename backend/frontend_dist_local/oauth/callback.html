@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth 回调处理中...</title>
+</head>
+<body>
+    <script>
+        (function() {
+            const jwtAccess = sessionStorage.getItem('jwt_access');
+            const jwtRefresh = sessionStorage.getItem('jwt_refresh');
+
+            if (jwtAccess || jwtRefresh) {
+                console.log('User already logged in, redirecting to main page');
+                window.location.href = window.location.origin + '#/myproject';
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const error = urlParams.get('error');
+            const errorDescription = urlParams.get('error_description');
+
+            if (!code && !state && !error) {
+                console.log('No OAuth parameters, redirecting to login page');
+                window.location.href = window.location.origin + '#/login';
+                return;
+            }
+
+            const baseUrl = window.location.origin;
+            const hashPath = '#/login';
+            const queryParams = new URLSearchParams();
+            if (code) queryParams.set('code', code);
+            if (state) queryParams.set('state', state);
+            if (error) queryParams.set('error', error);
+            if (errorDescription) queryParams.set('error_description', errorDescription);
+
+            const queryString = queryParams.toString();
+            const redirectUrl = baseUrl + hashPath + (queryString ? '?' + queryString : '');
+            console.log('OAuth callback redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
+        })();
+    </script>
+    <p>正在处理 OAuth 回调，请稍候...</p>
+</body>
+</html>
+
+
+

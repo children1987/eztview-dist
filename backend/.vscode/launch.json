@@ -1,0 +1,55 @@
+{
+    "configurations": [
+        {
+            "name": "Python: 当前文件",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "python": "${command:python.interpreterPath}",
+            "pythonArgs": ["-Wa"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "runserver",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "python": "${command:python.interpreterPath}",
+            "pythonArgs": ["-Wa"],
+            "args": [
+                "runserver",
+                "0.0.0.0:8000",
+                // "--noreload",
+            ],
+            "justMyCode": false,
+            "django": true
+        },
+        {
+            "name": "makemigrations",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "python": "${command:python.interpreterPath}",
+            "pythonArgs": ["-Wa"],
+            "args": [
+                "makemigrations",
+            ],
+            "justMyCode": false,
+            "django": true
+        },
+        {
+            "name": "migrate",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "python": "${command:python.interpreterPath}",
+            "pythonArgs": ["-Wa"],
+            "args": [
+                "migrate",
+            ],
+            "justMyCode": false,
+            "django": true
+        }
+    ]
+}

@@ -1,0 +1,3 @@
+
+# 日志等级 {0: 'NOTSET', 50: 'CRITICAL', 40: 'ERROR', 30: 'WARNING', 20: 'INFO', 10: 'DEBUG'}
+LOG_LEVEL = 20
