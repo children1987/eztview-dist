@@ -320,6 +320,12 @@ class PrepaidElMeter(BasePriceCfg):
         help_text='累计收益金额(元)',
         default=0
     )
+    order = models.IntegerField(
+        verbose_name='排序',
+        help_text='排序',
+        db_index=True,
+        default=0
+    )
     created_time = models.DateTimeField(
         verbose_name='创建时间',
         default=timezone.now
