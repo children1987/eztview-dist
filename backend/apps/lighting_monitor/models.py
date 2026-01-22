@@ -66,3 +66,16 @@ class LightDevice(models.Model):
     def __str__(self):
         return self.node.name
 
+
+class LTDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        # 删除分组其余数据级联删除
+        LightMonitorNode.objects.filter(org=org).delete()

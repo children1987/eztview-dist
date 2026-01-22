@@ -115,3 +115,19 @@ class EnvDistribution(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+class ENVDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        # 删除分组
+        EnvironmentMonitorNode.objects.filter(org=org).delete()
+        # 分布图
+        EnvDistribution.objects.filter(org=org).delete()

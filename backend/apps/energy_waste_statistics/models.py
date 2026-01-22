@@ -160,3 +160,19 @@ class EnergyWasteDailyData(models.Model):
         verbose_name = '能耗浪费统计数据'
         verbose_name_plural = verbose_name
         unique_together = ('group', 'statistic_date')
+
+
+class EWDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        # 删除分组
+        EnergyWasteGroup.objects.filter(org=org).delete()
+        # 删除设备
+        EnergyWasteDevice.objects.filter(org=org).delete()

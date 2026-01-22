@@ -9,11 +9,10 @@ from django.views.static import serve
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, \
     SpectacularSwaggerView
 from rest_framework import routers
-from rest_framework_simplejwt.views import TokenRefreshView
 
 from backend.apps.alarms.views import DeviceAlarmLogsViewSet
 from backend.apps.configuration_cfgs.views import DeviceAttrVariableViewSet, ApiVariableViewSet, \
-    FrontCustomVariableViewSet
+    FrontCustomVariableViewSet, EnergyFlowDistributionViewSet
 from backend.apps.custom_reqlogs.views import CustomRequestLogsViewSets
 from backend.apps.custom_servers.views import DomainView
 from backend.apps.air_servers.views import AirCondGroupViewSet, CentralAirConditionerViewSet,  \
@@ -158,6 +157,7 @@ restful_org_router.register('el_daily_statistics', ElDailyStatisticViewSet, 'el_
 restful_org_router.register('device_attr_variables', DeviceAttrVariableViewSet, 'device_attr_variables')
 restful_org_router.register('api_variables', ApiVariableViewSet, 'api_variables')
 restful_org_router.register('front_custom_variables', FrontCustomVariableViewSet, 'front_custom_variables')
+restful_org_router.register('energy_flow_distributions', EnergyFlowDistributionViewSet, 'energy_flow_distributions')
 
 api_v1 = [
     path('iam/', include((iam_client_urls, 'iam'), namespace="iam")),

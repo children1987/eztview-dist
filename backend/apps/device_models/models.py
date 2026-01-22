@@ -188,7 +188,7 @@ class AirConditioner(BaseModel):
     switch = models.CharField(
         verbose_name='开关状态',
         help_text='开关状态',
-        max_length=1,
+        max_length=10,
         null=True,
         blank=True
     )

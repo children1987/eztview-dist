@@ -28,7 +28,11 @@ class Notifier(object):
         以短信的形式通知用户
         """
         sms_id = SMS_ID_MAP[template_key]
-        logger.info(f'aims = {aims}, sms_id = {type(sms_id)}{sms_id} , params = {params}')
+        if template_key == 'common_verify' and params:
+            temp_params = ['****'] + params[1:]
+        else:
+            temp_params = params
+        logger.info(f'aims = {aims}, sms_id = {type(sms_id)}{sms_id} , params = {temp_params}')
         send_sms(aims, sms_id, params, logger=logger)
 
     @staticmethod
