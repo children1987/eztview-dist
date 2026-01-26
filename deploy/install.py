@@ -14,8 +14,6 @@ mcq 自动化本地部署脚本（参考 deploy/部署指导_local.md）
 
 可选参数用于覆盖 .env 字段，未提供的字段将保留 env_example 默认值。
 """
-from __future__ import annotations
-
 import argparse
 import json
 import secrets
@@ -23,7 +21,6 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Dict, Optional
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 BACKEND_DIR = BASE_DIR / "backend"
@@ -37,12 +34,12 @@ NGINX_CONFIG = DEPLOY_DIR / "nginx" / "mcq_http_nginx.conf"
 NGINX_PROJECTS_DIR = Path("/workspace/nginx/projects")
 
 
-def run(cmd: list[str], cwd: Optional[Path] = None, check: bool = True) -> subprocess.CompletedProcess:
+def run(cmd, cwd=None, check=True):
     print(f"[RUN] {' '.join(cmd)} (cwd={cwd or '.'})")
     return subprocess.run(cmd, cwd=cwd, check=check)
 
 
-def load_credentials(path: Path) -> Dict:
+def load_credentials(path):
     if not path.exists():
         print(f"⚠️ 未找到凭证文件 {path}，将只使用命令行参数和 env_example 默认值。")
         return {}
@@ -53,12 +50,12 @@ def load_credentials(path: Path) -> Dict:
         return {}
 
 
-def generate_key(length: int = 50) -> str:
+def generate_key(length= 50):
     # 生成 URL safe 密钥
     return secrets.token_urlsafe(length)
 
 
-def build_env_map(args: argparse.Namespace, creds: Dict) -> Dict[str, str]:
+def build_env_map(args, creds):
     # IAM 客户端：直接使用 iam_client_eztview（不做兼容）
     oauth = creds.get("iam_client_eztview") or {}
     influx = creds.get("influxdb", {}) or {}
@@ -117,7 +114,7 @@ def build_env_map(args: argparse.Namespace, creds: Dict) -> Dict[str, str]:
     return {k: v for k, v in updates.items() if v is not None}
 
 
-def write_env(updates: Dict[str, str]) -> None:
+def write_env(updates):
     if not ENV_EXAMPLE.exists():
         raise FileNotFoundError(f"缺少 {ENV_EXAMPLE}")
     lines = ENV_EXAMPLE.read_text(encoding="utf-8").splitlines()
@@ -135,18 +132,18 @@ def write_env(updates: Dict[str, str]) -> None:
     print(f"✓ 已写入 {ENV_FILE}")
 
 
-def ensure_exec(path: Path) -> None:
+def ensure_exec(path):
     if path.exists():
         path.chmod(path.stat().st_mode | 0o111)
 
 
-def run_git_tasks() -> None:
+def run_git_tasks():
     print("配置 git 并拉取代码...")
     run(["git", "config", "core.filemode", "false"], cwd=BASE_DIR, check=False)
     run(["git", "pull"], cwd=BASE_DIR, check=False)
 
 
-def copy_public_key() -> None:
+def copy_public_key():
     if not IAM_PUBLIC_KEY.exists():
         print(f"⚠️ 未找到 IAM 公钥 {IAM_PUBLIC_KEY}，跳过复制。")
         return
@@ -155,7 +152,7 @@ def copy_public_key() -> None:
     print(f"✓ 已复制 public.pem 至 {MCQ_PUBLIC_KEY}")
 
 
-def setup_nginx() -> None:
+def setup_nginx():
     if not NGINX_CONFIG.exists():
         print(f"⚠️ 未找到 Nginx 配置 {NGINX_CONFIG}，跳过。")
         return
@@ -169,12 +166,12 @@ def setup_nginx() -> None:
         run(["docker", "restart", "nginx"], check=False)
 
 
-def docker_compose_up() -> None:
+def docker_compose_up():
     print("构建并启动容器...")
     run(["docker-compose", "-p", "mcq", "up", "-d"], cwd=DEPLOY_DIR)
 
 
-def ensure_cron_tasks() -> None:
+def ensure_cron_tasks():
     # 若 crontab 中不存在 mcq 相关任务，则添加日志清理任务
     result = subprocess.run(
         ["crontab", "-l"], text=True, capture_output=True, check=False
@@ -191,7 +188,7 @@ def ensure_cron_tasks() -> None:
     print("✓ 已添加 cron 任务。")
 
 
-def wait_for_container(name: str, timeout: int = 180) -> bool:
+def wait_for_container(name, timeout= 180):
     """等待容器启动"""
     print(f"等待容器 {name} 启动...")
     for _ in range(timeout):
@@ -209,7 +206,7 @@ def wait_for_container(name: str, timeout: int = 180) -> bool:
     return False
 
 
-def wait_for_migrations(timeout: int = 180) -> bool:
+def wait_for_migrations(timeout= 180):
     """等待 Django migrate 完成"""
     print("等待容器内的 Django migrate 完成...")
     for i in range(timeout):
@@ -229,7 +226,7 @@ def wait_for_migrations(timeout: int = 180) -> bool:
     return False
 
 
-def run_manage(*args: str, check: bool = True, capture: bool = False) -> subprocess.CompletedProcess | str:
+def run_manage(*args, check=True, capture=False):
     """在容器内执行 Django manage.py 命令"""
     cmd = ["docker", "exec", "mcq_web_server", "python", "manage.py"] + list(args)
     result = subprocess.run(cmd, text=True, capture_output=capture, check=check)
@@ -238,7 +235,7 @@ def run_manage(*args: str, check: bool = True, capture: bool = False) -> subproc
     return result
 
 
-def sync_user_from_iam(username: str, password: str, iam_base: str) -> None:
+def sync_user_from_iam(username, password, iam_base):
     """在容器内使用 Django 管理命令从 IAM 同步用户
     
     Args:
@@ -287,7 +284,7 @@ def sync_user_from_iam(username: str, password: str, iam_base: str) -> None:
         raise RuntimeError(f"同步用户未返回成功信息，输出: {output}")
 
 
-def sync_admin_from_iam(creds: Dict, iam_base: Optional[str] = None) -> None:
+def sync_admin_from_iam(creds, iam_base=None):
     """从 IAM 同步 admin 用户到 mcq"""
     # 获取 IAM admin 凭证
     iam_admin = creds.get("iam_admin", {})
@@ -324,7 +321,7 @@ def sync_admin_from_iam(creds: Dict, iam_base: Optional[str] = None) -> None:
         raise RuntimeError(f"同步用户时发生错误: {str(e)}")
 
 
-def perform_local_deploy() -> None:
+def perform_local_deploy():
     print("==== 本地部署（原 init_deploy_local.sh） ====")
     run_git_tasks()
     print("注意：请确保前端打包已完成")
