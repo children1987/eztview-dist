@@ -217,8 +217,9 @@ def wait_for_migrations(timeout= 180):
     for i in range(timeout):
         result = subprocess.run(
             ["docker", "exec", "mcq_web_server", "python", "manage.py", "migrate", "--check"],
-            text=True,
-            capture_output=True,
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             check=False,
         )
         if result.returncode == 0:
@@ -271,8 +272,9 @@ def sync_user_from_iam(username, password, iam_base):
     print(f"→ 执行命令: python manage.py sync_user --username {username} --iam-base {iam_base}")
     result = subprocess.run(
         cmd,
-        text=True,
-        capture_output=True,
+        universal_newlines=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         check=False,
     )
     
