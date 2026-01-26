@@ -174,7 +174,11 @@ def docker_compose_up():
 def ensure_cron_tasks():
     # 若 crontab 中不存在 mcq 相关任务，则添加日志清理任务
     result = subprocess.run(
-        ["crontab", "-l"], text=True, capture_output=True, check=False
+        ["crontab", "-l"],
+        universal_newlines=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False
     )
     existing = result.stdout if result.returncode == 0 else ""
     if "mcq" in existing:
@@ -184,7 +188,7 @@ def ensure_cron_tasks():
     new_lines.append("0 0 * * * sh /workspace/mcq/deploy/uwsgi/uwsgi_log.sh")
     new_lines.append("0 0 * * * sh /workspace/mcq/deploy/nginx/rm-nginxlog.sh")
     content = "\n".join(new_lines) + "\n"
-    subprocess.run(["crontab", "-"], input=content, text=True, check=True)
+    subprocess.run(["crontab", "-"], input=content, universal_newlines=True, check=True)
     print("✓ 已添加 cron 任务。")
 
 
@@ -194,8 +198,9 @@ def wait_for_container(name, timeout= 180):
     for _ in range(timeout):
         result = subprocess.run(
             ["docker", "ps", "--filter", f"name={name}", "--format", "{{.Status}}"],
-            text=True,
-            capture_output=True,
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             check=False,
         )
         if result.stdout.strip().startswith("Up"):
@@ -229,7 +234,17 @@ def wait_for_migrations(timeout= 180):
 def run_manage(*args, check=True, capture=False):
     """在容器内执行 Django manage.py 命令"""
     cmd = ["docker", "exec", "mcq_web_server", "python", "manage.py"] + list(args)
-    result = subprocess.run(cmd, text=True, capture_output=capture, check=check)
+
+    kwargs = {
+        "universal_newlines": True,
+        "check": check
+    }
+    if capture:
+        kwargs["stdout"] = subprocess.PIPE
+        kwargs["stderr"] = subprocess.PIPE
+
+    result = subprocess.run(cmd, **kwargs)
+
     if capture:
         return (result.stdout or "").strip()
     return result
