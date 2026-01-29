@@ -8,6 +8,7 @@ from django.views.decorators.cache import cache_page
 from django.views.static import serve
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, \
     SpectacularSwaggerView
+from rest_framework.permissions import AllowAny
 from rest_framework import routers
 
 from backend.apps.alarms.views import DeviceAlarmLogsViewSet
@@ -50,6 +51,7 @@ from backend.apps.transformer_monitor.views import TransformerMonitorViewSet
 from backend.apps.uploader.views import UploadViewSet
 from backend.apps.users.views import ErrorTimesView, UserViewSet, ExtraLogin, \
     ImageCaptchaView, RegisterViewSet
+from backend.apps.system_configs.views import ModuleTrimView
 from backend.apps.iam_client.urls import iam_client_urls
 
 
@@ -178,6 +180,7 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('api/', include(router.urls)),
     path('api/domain/', DomainView.as_view(), name="domain"),
+    path('api/system/module_trim/', ModuleTrimView.as_view(), name='system-module-trim'),
     path('api/projects/<str:project>/', include(restful_project_router.urls)),
     path('api/projects/<str:project>/orgs/<str:org>/', include(restful_org_router.urls)),
     path('api/v1/', include((api_v1, 'api_v1'), namespace="api_v1")),
@@ -185,17 +188,30 @@ urlpatterns = [
 
 
 # 文档相关路由
+# 创建允许匿名访问的 schema 视图
+class PublicSpectacularAPIView(SpectacularAPIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+class PublicSpectacularSwaggerView(SpectacularSwaggerView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+class PublicSpectacularRedocView(SpectacularRedocView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
 if settings.DEBUG:
     urlpatterns += [
-        path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-        path('swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-        path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+        path('api/schema/', PublicSpectacularAPIView.as_view(), name='schema'),
+        path('swagger-ui/', PublicSpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+        path('redoc/', PublicSpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     ]
 else:
     urlpatterns += [
-        path('api/schema/', cache_page(3600)(SpectacularAPIView.as_view()), name='schema'),
-        path('swagger-ui/', cache_page(3600)(SpectacularSwaggerView.as_view(url_name='schema')), name='swagger-ui'),
-        path('redoc/', cache_page(3600)(SpectacularRedocView.as_view(url_name='schema')), name='redoc'),
+        path('api/schema/', cache_page(3600)(PublicSpectacularAPIView.as_view()), name='schema'),
+        path('swagger-ui/', cache_page(3600)(PublicSpectacularSwaggerView.as_view(url_name='schema')), name='swagger-ui'),
+        path('redoc/', cache_page(3600)(PublicSpectacularRedocView.as_view(url_name='schema')), name='redoc'),
     ]
 
 if settings.IS_USE_COS:

@@ -2,7 +2,7 @@ version: '3'
 services:
   mcq_redis:
     container_name: mcq_redis
-    image: redis
+    image: redis:8.4.0-alpine
     command: redis-server /etc/redis/redis.conf
     volumes:
       - /workspace/mcq/redis_data:/data
@@ -14,9 +14,7 @@ services:
     container_name: mcq_web_server
     volumes:
       - /workspace/mcq:/workspace/mcq
-    build:
-      context: /workspace/mcq
-      dockerfile: deploy/Dockerfile
+
 #    depends_on:
 #      - mcq_redis
     command: >
@@ -31,9 +29,7 @@ services:
   mcq_celery:
     image: mcq:latest
     container_name: mcq_celery
-    build:
-      context: /workspace/mcq
-      dockerfile: deploy/Dockerfile
+
     volumes:
       - /workspace/mcq:/workspace/mcq
     command:
@@ -49,9 +45,7 @@ services:
   mcq_celery_beat:
     image: mcq:latest
     container_name: mcq_celery_beat
-    build:
-      context: /workspace/mcq
-      dockerfile: deploy/Dockerfile
+
     volumes:
       - /workspace/mcq:/workspace/mcq
     command:
@@ -69,9 +63,7 @@ services:
   mcq_isw_adapter:
     image: mcq:latest
     container_name: mcq_isw_adapter
-    build:
-      context: /workspace/mcq
-      dockerfile: deploy/Dockerfile
+
     volumes:
       - /workspace/mcq:/workspace/mcq
     command:
@@ -85,9 +77,7 @@ services:
   mcq_device_monitor:
     image: mcq:latest
     container_name: mcq_device_monitor
-    build:
-      context: /workspace/mcq
-      dockerfile: deploy/Dockerfile
+
     volumes:
       - /workspace/mcq:/workspace/mcq
     command:
@@ -101,9 +91,7 @@ services:
   mcq_wechat_pay_server:
     image: mcq:latest
     container_name: mcq_wechat_pay_server
-    build:
-      context: /workspace/mcq
-      dockerfile: deploy/Dockerfile
+
     volumes:
       - /workspace/mcq:/workspace/mcq
     command:
@@ -117,9 +105,7 @@ services:
   mcq_notifier:
     image: mcq:latest
     container_name: mcq_notifier
-    build:
-      context: /workspace/mcq
-      dockerfile: deploy/Dockerfile
+
     volumes:
       - /workspace/mcq:/workspace/mcq
     command:

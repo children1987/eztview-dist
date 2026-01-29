@@ -2,28 +2,24 @@
 # 本文件用于重新部署后端服务
 project_name="mcq"
 
+# 固定到 deploy 目录运行，避免相对路径导致找不到文件
+cd /workspace/mcq/deploy || exit 1
+
 echo "git configging ..."
 git config core.filemode false
 echo "git configging finished. "
 
 echo "git pull 开始"
+cd /workspace/mcq || exit 1
 git pull
-chmod +x auto_deploy*.sh
+chmod +x auto_deploy*.sh 2>/dev/null || true
+cd /workspace/mcq/deploy || exit 1
 echo "git pull 完成"
 
-# 前端静态文件生成
-# 方式1: 适用于服务器本地存放
-# echo "本地前端打包 开始"
-# docker run -it --rm --name mycnpm --network host -v /workspace/$project_name:/workspace/$project_name -w /workspace/$project_name/frontend_web_v5 children1987/mycnpm:12-alpine cnpm i
-# docker run -it --rm --name mycnpm --network host -v /workspace/$project_name:/workspace/$project_name -w /workspace/$project_name/frontend_web_v5 children1987/mycnpm:12-alpine cnpm run build
-# echo "本地前端打包 完成"
-# 方式2: 适用于cos存放
 echo "注意：请确保前端打包已完成"
 
 # 配置nginx
 nginx_cfg_file_name=$project_name"_nginx.conf"
-# echo "remove old Nginx config file"
-# rm -f /workspace/nginx/projects/$nginx_cfg_file_name
 if [ ! -f "/workspace/nginx/projects/$nginx_cfg_file_name" ]; then
     echo "copy Nginx config file"
     mkdir -p /workspace/nginx/projects
@@ -35,9 +31,11 @@ if [ ! -f "/workspace/nginx/projects/$nginx_cfg_file_name" ]; then
     docker restart nginx
 fi
 
-echo "docker-compose build ..."
-docker-compose build
+# 关键改动：mcq:latest 只构建一次，避免 docker-compose 对同一个 tag 并行 build 导致冲突
+echo "docker build mcq:latest ..."
+docker build -t mcq:latest -f /workspace/mcq/deploy/Dockerfile /workspace/mcq
 
+# 不再执行 docker-compose build，直接 up（会复用本地 mcq:latest）
 echo "docker-compose up -d ..."
 docker-compose -p $project_name up -d
 echo "docker-compose up -d finished."
