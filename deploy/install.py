@@ -168,6 +168,19 @@ def setup_nginx():
 
 def docker_compose_up():
     print("构建并启动容器...")
+    # mcq/deploy/docker-compose.yml 已移除 build 段，因此这里需要先构建一次共享镜像 mcq:latest
+    run(
+        [
+            "docker",
+            "build",
+            "-t",
+            "mcq:latest",
+            "-f",
+            str(DEPLOY_DIR / "Dockerfile"),
+            str(BASE_DIR),
+        ],
+        cwd=DEPLOY_DIR,
+    )
     run(["docker-compose", "-p", "mcq", "up", "-d"], cwd=DEPLOY_DIR)
 
 
