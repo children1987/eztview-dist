@@ -343,7 +343,12 @@ def sync_admin_from_iam(creds, iam_base=None):
         print(f"正在从 IAM 同步 admin 用户 ({username})...")
         # 使用 Django 管理命令，命令会自动从 IAM 获取用户数据并同步
         sync_user_from_iam(username, password, iam_base)
-        print("✓ 已从 IAM 同步 admin 用户到 mcq")
+        print("✓ 已从 IAM 同步 admin 用户资料到 mcq")
+
+        # 关键补充：sync_user 只同步用户资料，不处理密码；这里强制设置本地 admin 密码
+        print("正在为本地 admin 用户设置密码...")
+        run_manage("set_user_password", username, password, check=True, capture=False)
+        print("✓ 已为本地 admin 用户设置密码")
     except RuntimeError:
         # RuntimeError 已经包含详细的错误信息，直接抛出
         raise
