@@ -146,7 +146,7 @@ class ClientDomain(models.Model):
     )
     name = models.CharField(
         verbose_name='名称',
-        help_text='api域名:端口号 或 api域名',
+        help_text='api域名 或 api域名，注意不要带端口号',
         max_length=200,
         unique=True
     )
