@@ -51,7 +51,7 @@ from backend.apps.transformer_monitor.views import TransformerMonitorViewSet
 from backend.apps.uploader.views import UploadViewSet
 from backend.apps.users.views import ErrorTimesView, UserViewSet, ExtraLogin, \
     ImageCaptchaView, RegisterViewSet
-from backend.apps.system_configs.views import ModuleTrimView
+from backend.apps.system_configs.views import ModuleTrimView, SystemPublicConfigsView
 from backend.apps.iam_client.urls import iam_client_urls
 
 
@@ -181,6 +181,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/domain/', DomainView.as_view(), name="domain"),
     path('api/system/module_trim/', ModuleTrimView.as_view(), name='system-module-trim'),
+    path('api/system/public_configs/', SystemPublicConfigsView.as_view(), name='system-public-configs'),
     path('api/projects/<str:project>/', include(restful_project_router.urls)),
     path('api/projects/<str:project>/orgs/<str:org>/', include(restful_org_router.urls)),
     path('api/v1/', include((api_v1, 'api_v1'), namespace="api_v1")),
