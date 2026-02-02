@@ -106,7 +106,8 @@ def build_env_map(args, creds):
         # ISW 适配账号（如凭证中存在则写入）
         "ISW_MQTT_USERNAME": args.isw_mqtt_username or su_mcq.get("username"),
         "ISW_MQTT_PASSWORD": args.isw_mqtt_password or su_mcq.get("password"),
-        "ISW_URL": args.isw_url or "http://127.0.0.1:8082/",
+        # ISW_URL 始终使用调用方传入的 isw_url（例如 deploy_all.py 基于选定 IP 拼出的地址）
+        "ISW_URL": args.isw_url,
         "ISW_API_USER": args.isw_api_user or su_mcq.get("username"),
         "ISW_API_TOKEN": args.isw_api_token or su_mcq.get("password"),
     }
