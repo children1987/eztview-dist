@@ -60,8 +60,16 @@ def build_env_map(args, creds):
     oauth = creds.get("iam_client_eztview") or {}
     influx = creds.get("influxdb", {}) or {}
     postgres = creds.get("postgres", {}) or {}
-    # ISW 账号从 credentials 的 system_users.SU_mcq 中获取
-    su_mcq = creds.get("system_users", {}).get("SU_mcq", {}) if isinstance(creds.get("system_users"), dict) else {}
+    # ISW 账号：优先从 credentials.emqx.internal_users 中查找 username=SU_mcq 的记录
+    su_mcq = {}
+    emqx = creds.get("emqx") if isinstance(creds, dict) else None
+    internal_users = emqx.get("internal_users") if isinstance(emqx, dict) else None
+    if isinstance(internal_users, list):
+        for user in internal_users:
+            if isinstance(user, dict) and user.get("username") == "SU_mcq":
+                su_mcq = user
+                break
+
 
     # Influx 优先顺序：命令行 > creds 标准键 > creds 兼容键 > 默认
     influx_url = args.influx_url or "http://127.0.0.1:8086"
@@ -106,6 +114,9 @@ def build_env_map(args, creds):
         # ISW 适配账号（如凭证中存在则写入）
         "ISW_MQTT_USERNAME": args.isw_mqtt_username or su_mcq.get("username"),
         "ISW_MQTT_PASSWORD": args.isw_mqtt_password or su_mcq.get("password"),
+        # ISW/MQTT 连接地址：local 部署时应与 ISW_URL 使用同一台机器的 IP/域名
+        "ISW_MQTT_BROKER_URL": args.isw_mqtt_broker_url,
+        "ISW_MQTT_BROKER_PORT": args.isw_mqtt_broker_port,
         # ISW_URL 始终使用调用方传入的 isw_url（例如 deploy_all.py 基于选定 IP 拼出的地址）
         "ISW_URL": args.isw_url,
         "ISW_API_USER": args.isw_api_user or su_mcq.get("username"),
@@ -389,11 +400,24 @@ def main():
     parser.add_argument("--iam-client-secret")
     parser.add_argument("--iam-client-webhook-secret")
     parser.add_argument("--isw-url", dest="isw_url", help="isw_v2 API 基础地址，如 http://<ip>:8082/")
+    parser.add_argument("--isw-mqtt-broker-url", dest="isw_mqtt_broker_url", help="ISW MQTT Broker 的 IP/域名（不带 mqtt://）")
+    parser.add_argument("--isw-mqtt-broker-port", dest="isw_mqtt_broker_port", default="7883", help="ISW MQTT Broker 端口")
     parser.add_argument("--isw-mqtt-username")
     parser.add_argument("--isw-mqtt-password")
     parser.add_argument("--isw-api-user")
     parser.add_argument("--isw-api-token")
     args = parser.parse_args()
+
+    # 若未显式传 broker 地址，则从 isw_url 推导（与 ISW_URL 同机部署的常见场景一致）
+    if not getattr(args, "isw_mqtt_broker_url", None):
+        try:
+            from urllib.parse import urlparse
+
+            parsed = urlparse(args.isw_url)
+            if parsed.hostname:
+                args.isw_mqtt_broker_url = parsed.hostname
+        except Exception:
+            pass
 
     creds = load_credentials(args.credentials)
     updates = build_env_map(args, creds)
