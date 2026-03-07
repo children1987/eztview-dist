@@ -64,6 +64,7 @@ WECHAT_CALLBACK_KEY=mcq
 FRONTEND_DIR_NAME=frontend_dist_local
 
 # SMS
+# 注意：密钥与 AppID 必须同账号
 SMS_SECRET_ID=
 SMS_SECRET_KEY=
 SMS_SIGN_NAME=红檀
