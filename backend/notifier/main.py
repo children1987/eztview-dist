@@ -23,7 +23,7 @@ class Notifier(object):
     """
 
     @staticmethod
-    def _sms(aims: list, template_key, params: list, **kwargs):
+    def _sms(aims, template_key, params, **kwargs):
         """
         以短信的形式通知用户
         """
@@ -36,7 +36,7 @@ class Notifier(object):
         send_sms(aims, sms_id, params, logger=logger)
 
     @staticmethod
-    def _email(aims: list, template_key, params: list, **kwargs):
+    def _email(aims, template_key, params, **kwargs):
         """
         以email的形式通知用户
         """
@@ -54,7 +54,7 @@ class Notifier(object):
         em.send(em_msg)
 
     @classmethod
-    def _ding_robot(cls, aims: dict, template_key, params: list, **kwargs):
+    def _ding_robot(cls, aims, template_key, params, **kwargs):
         """
         以钉钉群消息的形式通知用户
         """
@@ -68,7 +68,7 @@ class Notifier(object):
 
 
     @classmethod
-    def _wechat(cls, aims: list, template_key, params: list, **kwargs):
+    def _wechat(cls, aims, template_key, params, **kwargs):
         wx_info = kwargs['wx_info']
         wx_template = deepcopy(NOTIFY_TEMPLATE[template_key]["template"]['wechat'])
         wx_template['data'] = json.loads(wx_template['data'].format(*params))
@@ -84,7 +84,7 @@ class Notifier(object):
             logger.info(res)
 
 
-    def notify(self, msg: dict):
+    def notify(self, msg):
         """
         向用户发送通知
         """
