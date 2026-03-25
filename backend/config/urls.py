@@ -43,6 +43,7 @@ from backend.apps.equipments.views import ISWDataView, EZtProjectsView, \
 from backend.apps.iot_breakers.views import IotBreakerTreeNodeViewSet, IotBreakerDeviceViewSet
 from backend.apps.lighting_monitor.views import LightMonitorNodeViewSet, LightDeviceViewSet
 from backend.apps.proj_common.views import ConstDataAPI
+from backend.apps.common.views import BackendVersionView
 from backend.apps.projects.views import ProjectViewSet, OrgTreeViewSet, \
     ProjectMemberViewSet, ProjectsAppMenusViewSet, OrgAppMenusViewSet, ProjectGroupViewSet
 from backend.apps.scenes.views import SceneConfigViewSet
@@ -182,6 +183,7 @@ urlpatterns = [
     path('api/domain/', DomainView.as_view(), name="domain"),
     path('api/system/module_trim/', ModuleTrimView.as_view(), name='system-module-trim'),
     path('api/system/public_configs/', SystemPublicConfigsView.as_view(), name='system-public-configs'),
+    path('api/system/backend_version/', BackendVersionView.as_view(), name='system-backend-version'),
     path('api/projects/<str:project>/', include(restful_project_router.urls)),
     path('api/projects/<str:project>/orgs/<str:org>/', include(restful_org_router.urls)),
     path('api/v1/', include((api_v1, 'api_v1'), namespace="api_v1")),
