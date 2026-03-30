@@ -7,3 +7,11 @@
 
 # 特殊文件单独配置（如有需要补充）
 # *.ini text eol=crlf
+
+# 对于所有文件，关闭自动换行符转换
+* -text
+
+# 专门针对二进制文件（.so, .png, .ico 等）设置为二进制
+*.so binary
+*.png binary
+*.ico binary
