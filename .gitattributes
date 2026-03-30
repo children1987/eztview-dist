@@ -1,14 +1,20 @@
-# 全局默认 LF 换行，自动转换行尾
-* text=auto eol=lf
-
 # 批处理文件强制 CRLF
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
-# 特殊文件单独配置（如有需要补充）
-# *.ini text eol=crlf
+# 对所有文件启用自动换行符转换
+* text=auto
 
-# 专门针对二进制文件（.so, .png, .ico 等）设置为二进制
-*.so binary
+# 强制二进制文件不进行任何转换
+*.jpg binary
+*.jpeg binary
 *.png binary
+*.gif binary
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
 *.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
