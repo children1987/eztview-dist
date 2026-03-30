@@ -66,3 +66,17 @@ class ElInstrument(models.Model):
 
     def __str__(self):
         return self.node.name
+
+
+class DBTDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        # 删除分组其余数据级联删除
+        BranchTreeNode.objects.filter(org=org).delete()

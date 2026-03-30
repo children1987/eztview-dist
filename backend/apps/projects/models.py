@@ -175,6 +175,8 @@ class OrgTree(MPTTModel):
             ("view_org_overview", "查看组织概览"),
             ("change_org_overview", "操作组织概览"),
             ("add_org_user", "组织成员"),
+            ("view_comprehensive_analysis", "查看综合分析"),
+            ("change_comprehensive_analysis", "操作综合分析"),
         )
 
     class MPTTMeta:

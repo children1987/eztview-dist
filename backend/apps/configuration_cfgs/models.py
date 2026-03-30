@@ -2,9 +2,8 @@ from django.db import models
 from django.utils import timezone
 
 from backend.apps.projects.models import OrgTree
-# 注意：使用字符串引用避免循环依赖
-# projects 使用字符串引用 'users.User'，为了保持一致，这里也使用字符串引用
 from backend.apps.equipments.models import Device
+from backend.apps.custom_perm.models import BaseModel
 
 
 class BaseVariable(models.Model):
@@ -185,6 +184,55 @@ class FrontCustomVariable(BaseVariable):
         null=True,
         blank=True
     )
+
+    def __str__(self):
+        return self.name
+
+
+class EnergyFlowDistribution(BaseModel):
+    """
+    能耗流向 - 分布图
+    """
+
+    org = models.ForeignKey(
+        OrgTree,
+        related_name='energy_flow_distributions',
+        on_delete=models.CASCADE,
+        verbose_name='所属组织',
+        help_text='所属组织',
+    )
+    name = models.CharField(
+        verbose_name='名称',
+        help_text='名称',
+        max_length=100,
+    )
+    image = models.TextField(
+        verbose_name='分布图',
+        help_text='分布图',
+        null=True,
+        blank=True,
+    )
+    is_polling = models.BooleanField(
+        default=False,
+        verbose_name='是否开启设备轮训',
+        help_text='是否开启设备轮训'
+    )
+    dmap_env_devices = models.JSONField(
+        verbose_name='分布图设备',
+        help_text='分布图设备',
+        null=True,
+        blank=True,
+    )
+    alternative_images = models.JSONField(
+        verbose_name='分布图images',
+        help_text='分布图images',
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = '能耗流向-分布图'
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return self.name

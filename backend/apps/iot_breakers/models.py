@@ -66,3 +66,15 @@ class IotBreakerDevice(models.Model):
     def __str__(self):
         return self.node.name
 
+
+class CTBDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        IotBreakerTreeNode.objects.filter(org=org).delete()

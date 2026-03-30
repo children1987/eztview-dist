@@ -8,6 +8,7 @@ from backend.apps.el_prepayment_servers.models import RechargeOrder, WithdrawalR
 from backend.apps.wechat.biz.wx_pay import WechatPayTools
 from backend.wechat_pay_server.config import wechat_pay_server_logger as logger
 from backend.m_common.debugger import rerun
+from django.utils import timezone
 
 
 class WechatPayStateCheck:
@@ -87,7 +88,7 @@ class WechatPayStateCheck:
     def run(cls):
         while 1:
             try:
-                c_time = datetime.datetime.now()
+                c_time = timezone.now()
                 check_time = c_time - datetime.timedelta(minutes=30)
                 cls.check_withdrawal_order(check_time)
                 cls.check_jsapi_recharge_order(check_time)

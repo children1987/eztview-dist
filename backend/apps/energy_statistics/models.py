@@ -143,3 +143,15 @@ class ElectricMeterNode(models.Model):
         verbose_name = '维度节点电表配置'
         verbose_name_plural = verbose_name
 
+
+class ECSDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        StatisticDimension.objects.filter(org=org).delete()

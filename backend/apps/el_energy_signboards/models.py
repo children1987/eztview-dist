@@ -96,3 +96,17 @@ class ElectricMeterLoad(models.Model):
         verbose_name_plural = verbose_name
 
 
+class ETEDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        ElHiddenDangerMonitor.objects.filter(org=org).delete()
+        ElPowerSource.objects.filter(org=org).delete()
+        ElectricMeterLoad.objects.filter(org=org).delete()
+

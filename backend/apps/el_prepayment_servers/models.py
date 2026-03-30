@@ -320,6 +320,12 @@ class PrepaidElMeter(BasePriceCfg):
         help_text='累计收益金额(元)',
         default=0
     )
+    order = models.IntegerField(
+        verbose_name='排序',
+        help_text='排序',
+        db_index=True,
+        default=0
+    )
     created_time = models.DateTimeField(
         verbose_name='创建时间',
         default=timezone.now
@@ -871,3 +877,53 @@ class ElDailyStatistic(models.Model):
         decimal_places=10,
         default=0
     )
+
+
+class PrepayDataManager(object):
+    """
+    预付费app 数据处理
+    """
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        # todo 线上是否需要考虑 组织收益未体现问题
+        TenantElMeter.objects.filter(el_meter__org=org).delete()
+        MeterReadRecord.objects.filter(el_meter__org=org).delete()
+        EventRecord.objects.filter(el_meter__org=org).delete()
+        ElDailyStatistic.objects.filter(el_meter__org=org).delete()
+
+        # 充值记录
+        RechargeRecord.objects.filter(el_meter__org=org).delete()
+        # 提现记录
+        WithdrawalRecords.objects.filter(org=org).delete()
+        # 电价配置
+        OrgPriceCfg.objects.filter(org=org).delete()
+
+        # 删除电表
+        PrepaidElMeter.objects.filter(org=org).delete()
+
+        if remove_app:
+            PrepaidOrgCfg.objects.filter(org=org).delete()
+        else:
+            # 清空支付收益与总提现金额
+            PrepaidOrgCfg.objects.filter(org=org).update(
+                recharge_amount=0,
+                sum_fee=0,
+                withdrawn_amount=0
+            )
+
+    @classmethod
+    def remove_app(cls, org):
+        """
+        移除组织下所有数据
+        :param org:
+        :return:
+        """
+        cls.clear_data(org, remove_app=True)
+

@@ -186,3 +186,27 @@ class AirSpaceTightSensor(models.Model):
     class Meta:
         verbose_name = '中央空调_门窗传感器'
         verbose_name_plural = verbose_name
+
+
+class AirDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        # 删除分组其余数据级联删除
+        AirCondGroup.objects.filter(org=org).delete()
+
+
+    @classmethod
+    def remove_app(cls, org):
+        """
+        移除组织下所有数据
+        :param org:
+        :return:
+        """
+        cls.clear_data(org, remove_app=True)

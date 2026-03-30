@@ -77,3 +77,15 @@ class TransformerMonitor(models.Model):
         verbose_name = '变压器监测-变压器监测设备'
         verbose_name_plural = verbose_name
 
+
+class TFDataManager(object):
+
+    @staticmethod
+    def clear_data(org, remove_app=False):
+        """
+        清除组织在该应用下所有的数据
+        :param org:
+        :param remove_app: 是否移除该app
+        :return:
+        """
+        TransformerMonitor.objects.filter(org=org).delete()
