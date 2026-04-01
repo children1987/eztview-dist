@@ -21,7 +21,7 @@ class SceneConfig(models.Model):
         null=True,
         blank=True
     )
-    project_key = models.CharField(
+    project_id = models.CharField(
         verbose_name=' Ezt项目project_key',
         help_text='Ezt项目project_key 通常以"PR_"开头，如"PR_xxxxxxxxxx',
         max_length=30
@@ -62,6 +62,16 @@ class SceneConfig(models.Model):
         max_length=100,
         null=True,
         blank=True,
+    )
+    resend_count = models.PositiveSmallIntegerField(
+        verbose_name='重发次数',
+        help_text='重发次数(0-3次)',
+        default=0,
+    )
+    interval_seconds = models.PositiveIntegerField(
+        verbose_name='重发间隔(1-300秒)',
+        help_text='重发间隔(1-300秒)',
+        default=60
     )
     creator = models.ForeignKey(
         'users.User',  # 使用字符串引用避免循环依赖

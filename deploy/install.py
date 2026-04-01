@@ -56,20 +56,36 @@ def generate_key(length= 50):
 
 
 def build_env_map(args, creds):
+    SU_MCQ_USERNAME = "SU_mcq"
+
     # IAM 客户端：直接使用 iam_client_eztview（不做兼容）
     oauth = creds.get("iam_client_eztview") or {}
     influx = creds.get("influxdb", {}) or {}
     postgres = creds.get("postgres", {}) or {}
-    # ISW 账号：优先从 credentials.emqx.internal_users 中查找 username=SU_mcq 的记录
-    su_mcq = {}
-    emqx = creds.get("emqx") if isinstance(creds, dict) else None
-    internal_users = emqx.get("internal_users") if isinstance(emqx, dict) else None
-    if isinstance(internal_users, list):
-        for user in internal_users:
-            if isinstance(user, dict) and user.get("username") == "SU_mcq":
-                su_mcq = user
-                break
 
+    # EMQX 帐号：从 credentials.emqx.internal_users 中查找 username=SU_mcq 的记录
+    emqx_internal_users = creds.get("emqx", {}).get("internal_users", []) or []
+    for user in emqx_internal_users:
+        if user.get("username") == SU_MCQ_USERNAME:
+            emqx_su_mcq_password = user.get("password")
+            break
+    if not emqx_su_mcq_password:
+        err_msg = "ERROR: deploy_credentials.json 中 emqx.internal_users.SU_mcq 账号配置缺失。"
+        print(err_msg)
+        raise RuntimeError(err_msg)
+
+    # ISW 账号：从 credentials.system_users 中查找 username=SU_mcq 的记录
+    system_users = creds.get("system_users") if isinstance(creds, dict) else None
+    if not isinstance(system_users, dict):
+        err_msg = "ERROR: deploy_credentials.json 中 system_users 配置缺失。"
+        print(err_msg)
+        raise RuntimeError(err_msg)
+
+    su_mcq = system_users.get(SU_MCQ_USERNAME)
+    if not su_mcq or not su_mcq.get("token"):
+        err_msg = "ERROR: deploy_credentials.json 中 system_users.SU_mcq 账号配置缺失。"
+        print(err_msg)
+        raise RuntimeError(err_msg)
 
     # Influx 优先顺序：命令行 > creds 标准键 > creds 兼容键 > 默认
     influx_url = args.influx_url or "http://127.0.0.1:8086"
@@ -112,15 +128,15 @@ def build_env_map(args, creds):
         "OAUTH2_CLIENT_SECRET": client_secret,
         "OAUTH2_CLIENT_WEBHOOK_SECRET": client_webhook_secret,
         # ISW 适配账号（如凭证中存在则写入）
-        "ISW_MQTT_USERNAME": args.isw_mqtt_username or su_mcq.get("username"),
-        "ISW_MQTT_PASSWORD": args.isw_mqtt_password or su_mcq.get("password"),
+        "ISW_MQTT_USERNAME": args.isw_mqtt_username or SU_MCQ_USERNAME,
+        "ISW_MQTT_PASSWORD": args.isw_mqtt_password or emqx_su_mcq_password,
         # ISW/MQTT 连接地址：local 部署时应与 ISW_URL 使用同一台机器的 IP/域名
         "ISW_MQTT_BROKER_URL": args.isw_mqtt_broker_url,
         "ISW_MQTT_BROKER_PORT": args.isw_mqtt_broker_port,
         # ISW_URL 始终使用调用方传入的 isw_url（例如 deploy_all.py 基于选定 IP 拼出的地址）
         "ISW_URL": args.isw_url,
-        "ISW_API_USER": args.isw_api_user or su_mcq.get("username"),
-        "ISW_API_TOKEN": args.isw_api_token or su_mcq.get("password"),
+        "ISW_API_USER": args.isw_api_user or SU_MCQ_USERNAME,
+        "ISW_API_TOKEN": args.isw_api_token or su_mcq.get("token"),
     }
     # 过滤 None，保留非空
     return {k: v for k, v in updates.items() if v is not None}
