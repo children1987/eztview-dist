@@ -38,8 +38,9 @@ services:
       - |
         cd /workspace/mcq/backend
         celery -A apps.celery_tasks.main worker -l warning -f ./log/celery.log
-#    depends_on:
-#      - mcq_redis
+    depends_on:
+      - mcq_web_server
+      - mcq_redis
     restart: unless-stopped
     network_mode: "host"
   mcq_celery_beat:
@@ -72,6 +73,8 @@ services:
       - |
         cd /workspace/mcq/backend/isw_adapter
         if [ -f main.py ]; then python main.py; else python main.pyc; fi
+    depends_on:
+      - mcq_web_server
     restart: unless-stopped
     network_mode: "host"
   mcq_device_monitor:
@@ -86,6 +89,8 @@ services:
       - |
         cd /workspace/mcq/backend/device_monitor
         if [ -f main.py ]; then python main.py; else python main.pyc; fi
+    depends_on:
+      - mcq_web_server
     restart: unless-stopped
     network_mode: "host"
   mcq_wechat_pay_server:
@@ -100,6 +105,8 @@ services:
       - |
         cd /workspace/mcq/backend/wechat_pay_server
         if [ -f main.py ]; then python main.py; else python main.pyc; fi
+    depends_on:
+      - mcq_web_server
     restart: unless-stopped
     network_mode: "host"
   mcq_notifier:
@@ -114,5 +121,7 @@ services:
       - |
         cd /workspace/mcq/backend/notifier
         if [ -f main.py ]; then python main.py; else python main.pyc; fi
+    depends_on:
+      - mcq_web_server
     restart: always
     network_mode: "host"

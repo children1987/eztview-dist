@@ -195,7 +195,7 @@ def setup_nginx():
 
 
 def docker_compose_up():
-    print("构建并启动容器...")
+    print("构建并按稳妥顺序启动容器...")
     # mcq/deploy/docker-compose.yml 已移除 build 段，因此这里需要先构建一次共享镜像 mcq:latest
     run(
         [
@@ -209,7 +209,26 @@ def docker_compose_up():
         ],
         cwd=DEPLOY_DIR,
     )
-    run(["docker-compose", "-p", "mcq", "up", "-d"], cwd=DEPLOY_DIR)
+
+    # 第一步：先启动基础服务（redis + web）
+    run(["docker-compose", "-p", "mcq", "up", "-d", "mcq_redis", "mcq_web_server"], cwd=DEPLOY_DIR)
+
+    # 第二步：显式执行 migrate（幂等），确保数据库结构就绪
+    run(["docker", "exec", "mcq_web_server", "sh", "-c", "cd /workspace/mcq/backend && python manage.py migrate"])
+
+    # 第三步：启动依赖数据库结构的业务服务
+    run(
+        [
+            "docker-compose", "-p", "mcq", "up", "-d",
+            "mcq_celery",
+            "mcq_celery_beat",
+            "mcq_isw_adapter",
+            "mcq_device_monitor",
+            "mcq_wechat_pay_server",
+            "mcq_notifier",
+        ],
+        cwd=DEPLOY_DIR,
+    )
 
 
 def ensure_hstore_extension(db_name, db_user, db_password, postgres_container="postgres15"):
