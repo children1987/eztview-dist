@@ -212,6 +212,52 @@ def docker_compose_up():
     run(["docker-compose", "-p", "mcq", "up", "-d"], cwd=DEPLOY_DIR)
 
 
+def ensure_hstore_extension(db_name, db_user, db_password, postgres_container="postgres15"):
+    """在启动 mcq 容器前，串行确保 hstore 扩展已存在。
+
+    这样可以避免 mcq 容器启动时多个 Django 进程并发创建 hstore 导致的
+    pg_extension_name_index duplicate key 冲突。
+    """
+    if not db_password:
+        raise RuntimeError("缺少数据库密码，无法预创建 hstore 扩展")
+
+    print("预创建 PostgreSQL hstore 扩展（根治并发冲突）...")
+
+    # 优先通过本地 postgres 容器执行（部署脚本标准场景）
+    cmd = [
+        "docker", "exec",
+        "-e", f"PGPASSWORD={db_password}",
+        postgres_container,
+        "psql",
+        "-h", "127.0.0.1",
+        "-p", "5432",
+        "-U", db_user,
+        "-d", db_name,
+        "-v", "ON_ERROR_STOP=1",
+        "-c", "CREATE EXTENSION IF NOT EXISTS hstore;",
+    ]
+
+    result = subprocess.run(
+        cmd,
+        universal_newlines=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        stderr = (result.stderr or "").strip()
+        stdout = (result.stdout or "").strip()
+        raise RuntimeError(
+            "预创建 hstore 扩展失败。\n"
+            f"命令: {' '.join(cmd)}\n"
+            f"stdout: {stdout}\n"
+            f"stderr: {stderr}"
+        )
+
+    print("✓ hstore 扩展已就绪")
+
+
 def ensure_cron_tasks():
     # 若 crontab 中不存在 mcq 相关任务，则添加日志清理任务
     result = subprocess.run(
@@ -253,8 +299,16 @@ def wait_for_container(name, timeout= 180):
 
 
 def wait_for_migrations(timeout= 180):
-    """等待 Django migrate 完成"""
+    """等待 Django migrate 完成。
+
+    说明：在并发启动场景下，psqlextra 在 prepare_database 阶段执行
+    `CREATE EXTENSION IF NOT EXISTS hstore` 可能出现一次性竞争错误：
+    duplicate key value violates unique constraint pg_extension_name_index。
+    该错误通常表示另一进程已创建 hstore，属于可恢复的瞬态问题。
+    """
     print("等待容器内的 Django migrate 完成...")
+    duplicate_hstore_hits = 0
+
     for i in range(timeout):
         result = subprocess.run(
             ["docker", "exec", "mcq_web_server", "python", "manage.py", "migrate", "--check"],
@@ -263,13 +317,35 @@ def wait_for_migrations(timeout= 180):
             stderr=subprocess.PIPE,
             check=False,
         )
+
         if result.returncode == 0:
             print("✓ Django migrate 已完成")
             return True
+
+        err_text = (result.stderr or "") + "\n" + (result.stdout or "")
+        low = err_text.lower()
+        is_duplicate_hstore = (
+            "pg_extension_name_index" in low
+            and "duplicate key value violates unique constraint" in low
+            and "(extname)=(hstore)" in low
+        )
+
+        if is_duplicate_hstore:
+            duplicate_hstore_hits += 1
+            if duplicate_hstore_hits == 1:
+                print("⚠️ 检测到 hstore 扩展并发创建冲突（瞬态），继续等待容器内迁移完成...")
+            # 给正在运行的迁移一点时间，避免每秒触发一次竞争
+            time.sleep(2)
+            continue
+
         if i % 3 == 0 and i > 0:
             print(f"  等待中... ({i}/{timeout}s)")
+
         time.sleep(1)
+
     print(f"⚠️ Django migrate 在 {timeout}s 内未完成")
+    if duplicate_hstore_hits:
+        print("提示：超时期间检测到 hstore 并发创建冲突，可检查容器日志确认迁移最终状态。")
     return False
 
 
@@ -438,6 +514,13 @@ def main():
     creds = load_credentials(args.credentials)
     updates = build_env_map(args, creds)
     write_env(updates)
+
+    # 在启动 mcq 容器前串行创建 hstore，根治并发迁移冲突
+    ensure_hstore_extension(
+        db_name=args.db_name,
+        db_user=args.db_user,
+        db_password=updates.get("DATABASE_PASSWORD"),
+    )
 
     # 执行原 init_deploy_local.sh 的功能
     perform_local_deploy()
