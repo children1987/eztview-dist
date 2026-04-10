@@ -210,16 +210,31 @@ def docker_compose_up():
         cwd=DEPLOY_DIR,
     )
 
-    # 第一步：先启动基础服务（redis + web）
-    run(["docker-compose", "-p", "mcq", "up", "-d", "mcq_redis", "mcq_web_server"], cwd=DEPLOY_DIR)
+    # 第一步：只启动 redis，避免 web_server 启动命令里的 migrate 与外部 migrate 并发执行
+    run(["docker-compose", "-p", "mcq", "up", "-d", "mcq_redis"], cwd=DEPLOY_DIR)
 
-    # 第二步：显式执行 migrate（幂等），确保数据库结构就绪
-    run(["docker", "exec", "mcq_web_server", "sh", "-c", "cd /workspace/mcq/backend && python manage.py migrate"])
+    # 第二步：使用一次性容器串行执行 migrate（唯一迁移入口）
+    run(
+        [
+            "docker-compose",
+            "-p",
+            "mcq",
+            "run",
+            "--rm",
+            "--no-deps",
+            "mcq_web_server",
+            "sh",
+            "-c",
+            "cd /workspace/mcq/backend && python manage.py migrate",
+        ],
+        cwd=DEPLOY_DIR,
+    )
 
-    # 第三步：启动依赖数据库结构的业务服务
+    # 第三步：启动 web 与依赖数据库结构的业务服务
     run(
         [
             "docker-compose", "-p", "mcq", "up", "-d",
+            "mcq_web_server",
             "mcq_celery",
             "mcq_celery_beat",
             "mcq_isw_adapter",
