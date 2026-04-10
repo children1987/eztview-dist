@@ -10,10 +10,58 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameField(
-            model_name='sceneconfig',
-            old_name='project_key',
-            new_name='project_id',
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql='''
+                    DO $$
+                    BEGIN
+                        IF EXISTS (
+                            SELECT 1
+                            FROM information_schema.columns
+                            WHERE table_name = 'scenes_sceneconfig'
+                              AND column_name = 'project_key'
+                        )
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM information_schema.columns
+                            WHERE table_name = 'scenes_sceneconfig'
+                              AND column_name = 'project_id'
+                        ) THEN
+                            ALTER TABLE scenes_sceneconfig RENAME COLUMN project_key TO project_id;
+                        END IF;
+                    END
+                    $$;
+                    ''',
+                    reverse_sql='''
+                    DO $$
+                    BEGIN
+                        IF EXISTS (
+                            SELECT 1
+                            FROM information_schema.columns
+                            WHERE table_name = 'scenes_sceneconfig'
+                              AND column_name = 'project_id'
+                        )
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM information_schema.columns
+                            WHERE table_name = 'scenes_sceneconfig'
+                              AND column_name = 'project_key'
+                        ) THEN
+                            ALTER TABLE scenes_sceneconfig RENAME COLUMN project_id TO project_key;
+                        END IF;
+                    END
+                    $$;
+                    ''',
+                )
+            ],
+            state_operations=[
+                migrations.RenameField(
+                    model_name='sceneconfig',
+                    old_name='project_key',
+                    new_name='project_id',
+                ),
+            ],
         ),
         migrations.AddField(
             model_name='sceneconfig',
