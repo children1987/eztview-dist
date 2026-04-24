@@ -229,6 +229,12 @@ class EnergyFlowDistribution(BaseModel):
         null=True,
         blank=True,
     )
+    cfg_info = models.JSONField(
+        verbose_name='分布图配置信息',
+        help_text='分布图配置信息',
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = '能耗流向-分布图'
