@@ -1,0 +1,10 @@
+{
+  "web_site": {
+    "name": "星纵物联应用平台",
+    "logo": "./logo_mcq.png"
+  },
+  "systemconfig": {
+    "doc_center_url": "http://docs-milesight.eztview.com/",
+    "module_trim": "[\"transformer\", \"prepayment\"]"
+  }
+}
