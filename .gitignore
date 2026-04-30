@@ -1,6 +1,8 @@
 *.pyc
 /backend/.env
 /backend/log/
+/backend/media/
+redis_data/
 .idea/
 /node_modules/
 __pycache__/
