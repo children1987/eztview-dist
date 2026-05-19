@@ -242,3 +242,92 @@ class EnergyFlowDistribution(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+
+class ConfigurationImageCategory(BaseModel):
+
+    class Meta:
+        verbose_name = "组态图库分类"
+        verbose_name_plural = verbose_name
+
+    name = models.CharField(
+        verbose_name='分类名称',
+        help_text='分类名称',
+        unique=True,
+        max_length=50,
+    )
+    ordering = models.PositiveIntegerField(
+        verbose_name='排序',
+        help_text='排序',
+        default=0,
+    )
+
+
+class ConfigurationImage(models.Model):
+
+    class Meta:
+        verbose_name = "组态图库"
+        verbose_name_plural = verbose_name
+
+    category = models.ForeignKey(
+        ConfigurationImageCategory,
+        on_delete=models.CASCADE,
+        verbose_name='图库分类',
+        help_text='图库分类',
+        related_name='images',
+    )
+    image = models.ImageField(
+        verbose_name='组态图片',
+        help_text='组态图片',
+        upload_to='serve_images',
+    )
+    ordering = models.PositiveIntegerField(
+        verbose_name='排序',
+        help_text='排序',
+        default=0,
+    )
+
+
+class ConfigurationIconCategory(BaseModel):
+
+    class Meta:
+        verbose_name = "组态icon分类"
+        verbose_name_plural = verbose_name
+
+    name = models.CharField(
+        verbose_name='分类名称',
+        help_text='分类名称',
+        unique=True,
+        max_length=50,
+    )
+    ordering = models.PositiveIntegerField(
+        verbose_name='排序',
+        help_text='排序',
+        default=0,
+    )
+
+
+class ConfigurationIcon(models.Model):
+
+    class Meta:
+        verbose_name = "组态icon库"
+        verbose_name_plural = verbose_name
+
+    category = models.ForeignKey(
+        ConfigurationIconCategory,
+        on_delete=models.CASCADE,
+        verbose_name='icon分类',
+        help_text='icon分类',
+        related_name='icons',
+    )
+    icon = models.ImageField(
+        verbose_name='组态icon',
+        help_text='组态icon',
+        upload_to='serve_icons',
+    )
+    ordering = models.PositiveIntegerField(
+        verbose_name='排序',
+        help_text='排序',
+        default=0,
+    )

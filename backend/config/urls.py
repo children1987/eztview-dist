@@ -13,7 +13,8 @@ from rest_framework import routers
 
 from backend.apps.alarms.views import DeviceAlarmLogsViewSet
 from backend.apps.configuration_cfgs.views import DeviceAttrVariableViewSet, ApiVariableViewSet, \
-    FrontCustomVariableViewSet, EnergyFlowDistributionViewSet
+    FrontCustomVariableViewSet, EnergyFlowDistributionViewSet, ConfigurationImageCategoryViewSet, \
+    ConfigurationImageViewSet, ConfigurationIconCategoryViewSet, ConfigurationIconViewSet
 from backend.apps.custom_reqlogs.views import CustomRequestLogsViewSets
 from backend.apps.custom_servers.views import DomainView
 from backend.apps.air_servers.views import AirCondGroupViewSet, CentralAirConditionerViewSet,  \
@@ -68,6 +69,10 @@ router.register('tenant_el_meters', TenantElMeterViewSet, 'tenant_el_meters')
 router.register('tenant_recharge_records', TenantRechargeRecordViewSet, 'tenant_recharge_records')
 router.register('tenant_recharge_orders', RechargeOrderViewSet, 'tenant_recharge_orders')
 router.register('request_logs', CustomRequestLogsViewSets, 'request_logs')
+router.register('configuration_image_categories', ConfigurationImageCategoryViewSet, 'configuration_image_categories')
+router.register('configuration_images', ConfigurationImageViewSet, 'configuration_images')
+router.register('configuration_icon_categories', ConfigurationIconCategoryViewSet, 'configuration_icon_categories')
+router.register('configuration_icons', ConfigurationIconViewSet, 'configuration_icons')
 
 # 项目级 路由
 project_router = routers.DefaultRouter()
