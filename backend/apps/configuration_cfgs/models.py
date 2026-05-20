@@ -321,10 +321,10 @@ class ConfigurationIcon(models.Model):
         help_text='icon分类',
         related_name='icons',
     )
-    icon = models.ImageField(
+    icon = models.CharField(
         verbose_name='组态icon',
         help_text='组态icon',
-        upload_to='serve_icons',
+        max_length=50,
     )
     ordering = models.PositiveIntegerField(
         verbose_name='排序',
